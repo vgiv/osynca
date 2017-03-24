@@ -1,0 +1,120 @@
+@echo off
+rem THIS IS A TEMPLATE OF get.bat
+rem
+echo ********** get.bat, v.0.65 **********
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem THE BEGINING OF VARIABLE SECTION
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem The variables below are to be set for the specific user
+rem The best way to do it is to run 'osynca.exe /i'
+rem
+rem Set direction of synchronisation (12 or 21)
+rem
+set DIRECTION=__DIRECTION__
+rem
+rem Set names of local and remote computers
+rem
+set COMPUTER1=__COMPUTER1__
+set COMPUTER2=__COMPUTER2__
+rem
+rem Set volume to be synchronyzed
+rem 
+set VOLUME=__VOLUME__
+rem
+rem Set directory for syncronization file (e.g. a flash drive; with the final backslash)
+rem
+set SDIR=__SDIR__
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem THE END OF VARIABLE SECTION
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem
+rem The text below must not be changed without imperious needs!
+rem
+rem Set computer names
+rem 
+if %DIRECTION% == 12 (
+  set COMPUTER=%COMPUTER1%
+  set RCOMPUTER=%COMPUTER2%
+) else (
+  set COMPUTER=%COMPUTER2%
+  set RCOMPUTER=%COMPUTER1%
+)
+rem
+rem Set filenames
+rem
+set BDIR=.\BACKUP\
+rem
+set HR=%TIME:~0,2%
+if "%HR:~0,1%" equ " " set HR=0%HR:~1,1%
+set BFILE=%BDIR%%DATE:~6,4%%DATE:~3,2%%DATE:~0,2%%HR%%TIME:~3,2%%TIME:~6,2%.7z
+rem
+set BLIST=%SDIR%%COMPUTER%_backup.lst
+set BLIST0=%SDIR%%COMPUTER%_backup000.lst
+set RLIST=%SDIR%%COMPUTER%_remove.lst
+set RLIST0=%SDIR%%COMPUTER%_remove000.lst
+set ULIST=%SDIR%%RCOMPUTER%2%COMPUTER%.lst
+set ULIST0=%SDIR%%RCOMPUTER%2%COMPUTER%000.lst
+set UARC=%SDIR%%RCOMPUTER%2%COMPUTER%.7z
+set UARC0=%SDIR%%RCOMPUTER%2%COMPUTER%000.7z
+rem
+rem Check initialization
+rem
+if exist %SDIR%%COMPUTER%.fil if exist %SDIR%%RCOMPUTER%.fil goto ok
+echo First you must run init.bat on both computers
+pause
+exit
+:ok
+rem
+echo Getting files for %COMPUTER% from %RCOMPUTER%
+rem
+if exist %BLIST% (
+  echo Changed files are being backuped...
+  7z.exe a -spf2 -scsWIN %BFILE% @%BLIST% > nul
+  if not errorlevel 0 (
+    echo Error in 7z
+    exit
+  )
+  move %BLIST% %BLIST0% > nul
+  echo Done
+) else (
+  echo No changed files to backup
+)
+rem
+if exist %RLIST% (
+  echo Removed files are being backuped...
+  7z.exe a -spf2 -sdel -scsWIN %BFILE% @%RLIST% > nul
+  if not errorlevel 0 (
+    echo Error of 7z
+    exit
+  )
+  move %RLIST% %RLIST0% > nul
+  echo Done
+) else (
+  echo No files to remove
+)
+rem
+if exist %UARC% (
+  echo Files are being created or updated...
+  7z.exe x -spe -aoa -scsWIN -o%VOLUME%\ %UARC% > nul
+  if not errorlevel 0 (
+    echo Error of 7z
+    exit
+  )
+  move %UARC% %UARC0% > nul
+  if exist %ULIST% move %ULIST% %ULIST0% > nul
+  echo Done
+) else (
+  echo No files to create or update
+)
+rem
+rem Rebuild %COMPUTER%.fil file
+rem
+echo Updating %COMPUTER%.fil...
+osynca.exe /f
+if not errorlevel 0 (
+  echo Error in osynca
+) else (
+  echo Done
+)
+echo ********** End of get.bat **********
+pause

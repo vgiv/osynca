@@ -1,0 +1,91 @@
+@echo off
+rem THIS IS A TEMPLATE OF put.bat
+rem
+echo ********** put.bat, v.0.65 **********
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem THE BEGINING OF VARIABLE SECTION
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem The variables below are to be set for the specific user
+rem The best way to do it is to run 'osynca.exe /i'
+rem
+rem Set direction of synchronisation (12 or 21)
+rem
+set DIRECTION=__DIRECTION__
+rem
+rem Set names of local and remote computers
+rem
+set COMPUTER1=__COMPUTER1__
+set COMPUTER2=__COMPUTER2__
+rem
+rem Set diretory for syncronization (e.g. a flash drive; with the final backslash)
+rem
+set SDIR=__SDIR__
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem THE END OF VARIABLE SECTION
+rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+rem
+rem The text below must not be changed without imperious needs!
+rem
+rem Set computer names
+rem 
+if %DIRECTION% == 12 (
+  set COMPUTER=%COMPUTER1%
+  set RCOMPUTER=%COMPUTER2%
+) else (
+  set COMPUTER=%COMPUTER2%
+  set RCOMPUTER=%COMPUTER1%
+)
+rem
+rem Set filenames
+rem
+set UNAME=%SDIR%%COMPUTER%2%RCOMPUTER%
+set ULIST=%UNAME%.lst
+set UARC=%UNAME%.7z
+set BLIST=%SDIR%%RCOMPUTER%_backup.lst
+set RLIST=%SDIR%%RCOMPUTER%_remove.lst
+rem
+rem Remove old lists of files
+rem
+if exist %BLIST% del /q %BLIST% > nul
+if exist %RLIST% del /q %RLIST% > nul
+if exist %ULIST% del /q %ULIST% > nul
+rem
+rem Check initialization
+rem
+if exist %SDIR%%COMPUTER%.fil if exist %SDIR%%RCOMPUTER%.fil goto ok
+echo First you must run init.bat on both computers
+pause
+exit
+:ok
+rem
+echo Preparing files for transfering from %COMPUTER% to %RCOMPUTER%
+rem
+rem Create new lists of files
+rem
+echo Creating lists of files...
+osynca.exe
+if not errorlevel 0 (
+  echo Error in osynca
+  exit
+)
+echo Done
+rem
+rem Delete old archive for updating
+rem
+if exist %UARC% del /q %UARC% > nul
+rem
+rem Create new archive for updating
+rem
+if exist %ULIST% (
+  echo Files are being prepared for updating...
+  7z.exe a -spf2 -scsWIN %UARC% @%ULIST% > nul
+  if errorlevel 0 (
+    echo Done
+  ) else (
+    echo Error in 7z
+  )
+) else (
+  echo No files for updating
+)
+echo ********** End of put.bat **********
+pause
