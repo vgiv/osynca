@@ -7,20 +7,22 @@ Uses
   SysUtils, Windows, FileCtrl, IniFiles, Classes, DateUtils;
 
 Const
-  Ver = 'v.0.988';
+  Ver = 'v.0.990';
   LogFileName = 'osynca.log';
   SecsInDay = 24*60*60; // number of seconds in day for TDateTime conversion
   ProgramMark = ' Osynca: ';
   MaxDirsQ = 63; // set maximum number of directories (now 64)
+  IniFileName0 = 'osynca.ini';
+  SyncFileName0 = 'sync.ini';
 
 Var
   flist, fupdate, fremove, fbackup, flog, femptydirs: TextFile;
 //
-  IniFile: TIniFile;
+  IniFile, SyncFile: TIniFile;
 //
   ListName, RemoteListName, ProgramDirectory,
     FullIniFileName, UpdateArcListName, RemoveArcListName,
-    BackupArcListName, SyncDir: TFileName;
+    BackupArcListName, SyncDir, FullSyncFileName: TFileName;
 //
   Computer1, Computer2, Direction, Computer, RemoteComputer, Volume: string;
 //
@@ -227,12 +229,38 @@ begin
   with IniFile do
   begin
     SecName := 'General';
+    Direction := ReadString( SecName, 'DIRECTION', '' );
+    SyncDir := ReadString( SecName, 'SDIR', '' );
+    EDListName := ReadString( SecName, 'EDLISTNAME', '' );
+    EDPrefix := ReadString( SecName, 'EDPREFIX', '' );
+  end;
+
+  IniFile.Free;
+
+  FullSyncFileName := SyncDir + SyncFileName0;
+
+end; {ReadIniFile}
+
+procedure FirstReadSyncFile;
+Var
+  SecName: string;
+begin
+
+// Does ini file exist?
+  if not FileExists(FullSyncFileName) then
+    raise Exception.Create( 'Sync file ' + QFN(FullSyncFileName) + ' cannot be found' );
+  ToConsole( 'Sync file: ' + QFN(FullSyncFileName) );
+
+// Prepare ini file
+  SyncFile := TIniFile.Create(FullSyncFileName);
+
+  with SyncFile do
+  begin
+    SecName := 'General';
 
     Computer1 := ReadString( SecName, 'COMPUTER1', '' );
     Computer2 := ReadString( SecName, 'COMPUTER2', '' );
-    Direction := ReadString( SecName, 'DIRECTION', '' );
     Volume := ReadString( SecName, 'Volume', '' );
-    SyncDir := ReadString( SecName, 'SDIR', '' );
 
 // Check parameters
     if (Computer1='') or (Computer2='') or (SyncDir='') then
@@ -264,12 +292,12 @@ begin
     RemoveArcListName := SyncDir + RemoteComputer + '_remove.lst';
     BackupArcListName := SyncDir + RemoteComputer + '_backup.lst';
 
-    EDListName := ReadString( SecName, 'EDLISTNAME', '' );
-    EDPrefix := ReadString( SecName, 'EDPREFIX', '' );
-
   end;
 
-end; {ReadIniFile}
+  SyncFile.Free;
+
+end; {FirstReadSyncFile}
+
 
 procedure MakeComputerList;
 Var
@@ -285,7 +313,10 @@ begin
   qUpdate := 0;
   qRemove := 0;
 
-  with IniFile do
+// Prepare ini file
+  SyncFile := TIniFile.Create(FullSyncFileName);
+
+  with SyncFile do
   begin
     OutED := (EDListName<>'');
 
@@ -310,6 +341,8 @@ begin
     end;
 
   end;
+
+  SyncFile.Free;
 
 // delete file if it is empty
   if OutED and (qEmptyDirs=0) then
@@ -507,7 +540,7 @@ begin
 
 // Set configuration file name
   if IniFileName = '' then
-    IniFileName := 'osynca.ini';
+    IniFileName := IniFileName0;
   if IniFileName = ExtractFileName(IniFileName) then
   begin
     ProgramDirectory := ExtractFileDir( ParamStr(0) );
@@ -568,7 +601,7 @@ begin
     Append( flog )
   else
     Rewrite( flog );
-  WriteLn( flog, '=== ', DateTimeToStr( Now ), ' ===' );
+  WriteLn( flog, '=== ', DateTimeToStr( Now ), ' Osynca ',  Ver, ' ===' );
 
 // Set date format
   ShortDateFormat := 'yyyy-mm-dd hh:nn:ss';
@@ -579,8 +612,11 @@ begin
 // Parse command line
     ParseCmdLine;
 
-// Reading parameters
+// Read general parameters
     ReadIniFile;
+
+// Read syncronization parameters
+    FirstReadSyncFile;
 
     if InitOnly then
     begin
