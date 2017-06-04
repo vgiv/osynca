@@ -1,7 +1,7 @@
 @echo off
 rem THIS IS A TEMPLATE OF put.bat
 rem
-echo ********** put.bat, v.0.65 **********
+echo ********** put.bat, v.0.68 **********
 rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rem THE BEGINING OF VARIABLE SECTION
 rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,19 +44,28 @@ set UARC=%UNAME%.7z
 set BLIST=%SDIR%%RCOMPUTER%_backup.lst
 set RLIST=%SDIR%%RCOMPUTER%_remove.lst
 rem
+rem Look for the flash drive
+rem
+if not exist %SDIR:~0,2% (
+  echo The flash drive cannot be found
+  pause
+  exit
+)
+rem
+rem Check initialization
+rem
+if exist %SDIR%%COMPUTER%.fil if exist %SDIR%%RCOMPUTER%.fil goto ok
+echo A list of synchronized files cannot be found.
+echo Probably you have not initialized your profile.
+pause
+exit
+:ok
+rem
 rem Remove old lists of files
 rem
 if exist %BLIST% del /q %BLIST% > nul
 if exist %RLIST% del /q %RLIST% > nul
 if exist %ULIST% del /q %ULIST% > nul
-rem
-rem Check initialization
-rem
-if exist %SDIR%%COMPUTER%.fil if exist %SDIR%%RCOMPUTER%.fil goto ok
-echo First you must run init.bat on both computers
-pause
-exit
-:ok
 rem
 echo Preparing files for transfering from %COMPUTER% to %RCOMPUTER%
 rem
