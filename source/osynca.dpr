@@ -7,7 +7,7 @@ Uses
   SysUtils, Windows, FileCtrl, IniFiles, Classes, DateUtils;
 
 Const
-  Ver = 'v.0.990';
+  Ver = 'v.0.992';
   LogFileName = 'osynca.log';
   SecsInDay = 24*60*60; // number of seconds in day for TDateTime conversion
   ProgramMark = ' Osynca: ';
@@ -53,7 +53,7 @@ function QFN( const fn: TFileName ): TFileName;
 // Quote file name if need
 begin
   Result := fn;
-  if Pos( ' ', Result ) <> 0 then
+  if ( Pos( ' ', Result ) <> 0 ) or ( Pos( '&', Result ) <> 0 ) then
     Result :=  '"' + Result + '"';
 end; {QFN}
 
@@ -91,7 +91,7 @@ end; {ToLog}
 procedure ToCreate( const fnamex: TFileName );
 // fnamex is the filename, possibly, without a disk letter
 begin
-  WriteLn( fupdate, fnamex ); 
+  WriteLn( fupdate, QFN(fnamex) ); 
   ToLog( '+ ' + QFN(fnamex) ); 
   Inc( qCreate );
 end; {ToCreate}
@@ -99,8 +99,8 @@ end; {ToCreate}
 procedure ToUpdate( const fnamex: TFileName );
 // fnamex is the filename, possibly, without a disk letter
 begin
-  WriteLn( fbackup, fnamex );  
-  WriteLn( fupdate, fnamex );  
+  WriteLn( fbackup, QFN(fnamex) );  
+  WriteLn( fupdate, QFN(fnamex) );  
   ToLog( '! ' + QFN(fnamex) ); 
   Inc( qUpdate );
 end; {ToUpdate}
@@ -108,7 +108,7 @@ end; {ToUpdate}
 procedure ToRemove( const fnamex: TFileName );
 // fnamex is the filename, possibly, without a disk letter
 begin
-  WriteLn( fremove, fnamex );  
+  WriteLn( fremove, QFN(fnamex) );  
   ToLog( '- ' + QFN(fnamex) ); 
   Inc( qRemove );
 end; {ToRemove}
@@ -120,7 +120,7 @@ begin
     Exit;
 //
   Append( femptydirs );
-  WriteLn( femptydirs, StrAnsiToOem(EDPrefix + ' ' + fname) );  
+  WriteLn( femptydirs, StrAnsiToOem( EDPrefix + ' ' + QFN(fname) ) );  
   ToLog( 'EMPTY DIR: ' + QFN(fname) ); 
   Inc( qEmptyDirs );
   CloseFile( femptydirs );
