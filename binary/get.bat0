@@ -1,7 +1,9 @@
 @echo off
 rem THIS IS A TEMPLATE OF get.bat
 rem
-echo ********** get.bat, v.0.68 **********
+rem This bat file with default settings can be created by command 'osynca.exe /i'
+rem
+echo ********** get.bat, v.0.72 **********
 rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rem THE BEGINING OF VARIABLE SECTION
 rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,6 +56,8 @@ set RLIST=%SDIR%%COMPUTER%_remove.lst
 set RLIST0=%SDIR%%COMPUTER%_remove000.lst
 set ULIST=%SDIR%%RCOMPUTER%2%COMPUTER%.lst
 set ULIST0=%SDIR%%RCOMPUTER%2%COMPUTER%000.lst
+set INFOLIST=%SDIR%%RCOMPUTER%2%COMPUTER%.inf
+set INFOLIST0=%SDIR%%RCOMPUTER%2%COMPUTER%000.inf
 set UARC=%SDIR%%RCOMPUTER%2%COMPUTER%.7z
 set UARC0=%SDIR%%RCOMPUTER%2%COMPUTER%000.7z
 rem
@@ -77,53 +81,58 @@ rem
 echo Getting files for %COMPUTER% from %RCOMPUTER%
 rem
 if exist %BLIST% (
-  echo Changed files are being backuped...
+  echo Backuping files that will be updated...
   7z.exe a -spf2 -scsWIN %BFILE% @%BLIST% > nul
   if not errorlevel 0 (
-    echo Error in 7z
+    echo  Error in 7z
     exit
   )
   move %BLIST% %BLIST0% > nul
-  echo Done
+  echo  Done
 ) else (
-  echo No changed files to backup
+  echo No updated files to backup
 )
 rem
 if exist %RLIST% (
-  echo Removed files are being backuped...
+  echo Backuping and removing files...
   7z.exe a -spf2 -sdel -scsWIN %BFILE% @%RLIST% > nul
   if not errorlevel 0 (
-    echo Error of 7z
+    echo  Error of 7z
     exit
   )
   move %RLIST% %RLIST0% > nul
-  echo Done
+  echo  Done
 ) else (
   echo No files to remove
 )
 rem
 if exist %UARC% (
-  echo Files are being created or updated...
+  echo Creating and updating files...
   7z.exe x -spe -aoa -scsWIN -o%VOLUME%\ %UARC% > nul
   if not errorlevel 0 (
-    echo Error of 7z
+    echo  Error of 7z
     exit
   )
   move %UARC% %UARC0% > nul
   if exist %ULIST% move %ULIST% %ULIST0% > nul
-  echo Done
+  echo  Done
 ) else (
   echo No files to create or update
 )
+if exist %INFOLIST% (
+  type %INFOLIST%
+  move %INFOLIST% %INFOLIST0% > nul
+)
+echo.
 rem
 rem Rebuild %COMPUTER%.fil file
 rem
 echo Updating %COMPUTER%.fil...
 osynca.exe /f
 if not errorlevel 0 (
-  echo Error in osynca
+  echo  Error in osynca
 ) else (
-  echo Done
+  echo  Done
 )
 echo ********** End of get.bat **********
 pause

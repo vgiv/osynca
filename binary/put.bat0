@@ -1,7 +1,9 @@
 @echo off
 rem THIS IS A TEMPLATE OF put.bat
 rem
-echo ********** put.bat, v.0.68 **********
+rem This bat file with default settings can be created by command 'osynca.exe /i'
+rem
+echo ********** put.bat, v.0.72 **********
 rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rem THE BEGINING OF VARIABLE SECTION
 rem %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,7 +76,7 @@ rem
 echo Creating lists of files...
 osynca.exe
 if not errorlevel 0 (
-  echo Error in osynca
+  echo Error in osynca.exe
   exit
 )
 echo Done
@@ -86,7 +88,7 @@ rem
 rem Create new archive for updating
 rem
 if exist %ULIST% (
-  echo Files are being prepared for updating...
+  echo Preparing update archive...
   7z.exe a -spf2 -scsWIN %UARC% @%ULIST% > nul
   if errorlevel 0 (
     echo Done
