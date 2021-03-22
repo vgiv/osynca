@@ -7,7 +7,7 @@ Uses
   SysUtils, Windows, FileCtrl, IniFiles, Classes, DateUtils;
 
 Const
-  Ver = 'v.0.992';
+  Ver = 'v.0.996';
   LogFileName = 'osynca.log';
   SecsInDay = 24*60*60; // number of seconds in day for TDateTime conversion
   ProgramMark = ' Osynca: ';
@@ -16,13 +16,14 @@ Const
   SyncFileName0 = 'sync.ini';
 
 Var
-  flist, fupdate, fremove, fbackup, flog, femptydirs: TextFile;
+  flist, fupdate, fremove, fbackup, flog, femptydirs, finfo: TextFile;
 //
   IniFile, SyncFile: TIniFile;
 //
   ListName, RemoteListName, ProgramDirectory,
     FullIniFileName, UpdateArcListName, RemoveArcListName,
-    BackupArcListName, SyncDir, FullSyncFileName: TFileName;
+    BackupArcListName, SyncDir, FullSyncFileName,
+    InfoName: TFileName;
 //
   Computer1, Computer2, Direction, Computer, RemoteComputer, Volume: string;
 //
@@ -291,6 +292,7 @@ begin
     UpdateArcListName := SyncDir + Computer + '2' + RemoteComputer + '.lst';
     RemoveArcListName := SyncDir + RemoteComputer + '_remove.lst';
     BackupArcListName := SyncDir + RemoteComputer + '_backup.lst';
+    InfoName := SyncDir + Computer + '2' + RemoteComputer + '.inf';
 
   end;
 
@@ -427,6 +429,14 @@ begin
 
 end; {DateTimeDiff}
 
+procedure WriteInfMsg( Cnt: integer; Act: string );
+begin
+  if Cnt>1 then
+    WriteLn( finfo, Cnt:0, ' files have been ', Act )
+  else if Cnt=1 then
+    WriteLn( finfo, Cnt:0, ' file has been ', Act );
+end; {CntMsg}
+
 procedure CompareLists;
 Var
   i, j, k: integer;
@@ -493,6 +503,17 @@ begin
     DeleteFile( PChar(RemoveArcListName) );
   if qUpdate=0 then
     DeleteFile( PChar(BackupArcListName) );
+
+// Create info file
+  if qCreate+qRemove+qUpdate>0 then
+  begin
+    Assign( finfo, InfoName );
+    Rewrite( finfo );
+    WriteInfMsg( qCreate, 'created' );
+    WriteInfMsg( qRemove, 'backuped and removed' );
+    WriteInfMsg( qUpdate, 'backuped and updated' );
+    CloseFile( finfo );
+  end;
 
 end; {CompareLists}
 
@@ -649,16 +670,17 @@ begin
 
 // Read remote file list
     ReadRemoteList;
+
+// Compare lists
+    CompareLists;
+
+// Close log
+    CloseFile( flog );
+
   except
     on E: Exception do
       TerminateProgram( E.Message );
   end;
-
-// Compare lists
-  CompareLists;
-
-// Close log
-  CloseFile( flog );
 
 // Output statistics
 
