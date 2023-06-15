@@ -7,7 +7,7 @@ Uses
   SysUtils, Windows, FileCtrl, IniFiles, Classes, DateUtils;
 
 Const
-  Ver = 'v.0.996';
+  Ver = 'v.0.997';
   LogFileName = 'osynca.log';
   SecsInDay = 24*60*60; // number of seconds in day for TDateTime conversion
   ProgramMark = ' Osynca: ';
@@ -184,7 +184,9 @@ begin
     end;
 
 // Search for subdirectories
-  SearchResult := FindFirst( DirPath + '*.*', faDirectory, SRec );
+  SearchResult := FindFirst( DirPath + '*.*', faAnyFile, SRec );
+// In this case hidden directories are skipped! Why?
+//  SearchResult := FindFirst( DirPath + '*.*', faDirectory, SRec );
   while SearchResult=0 do
     with SRec do
     begin
