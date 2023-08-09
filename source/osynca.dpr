@@ -7,11 +7,11 @@ Uses
   SysUtils, Windows, FileCtrl, IniFiles, Classes, DateUtils;
 
 Const
-  Ver = 'v.0.997';
+  Ver = 'v.0.998';
   LogFileName = 'osynca.log';
   SecsInDay = 24*60*60; // number of seconds in day for TDateTime conversion
   ProgramMark = ' Osynca: ';
-  MaxDirsQ = 63; // set maximum number of directories (now 64)
+  MaxDirsQ = 63; // set the maximum number of directories (now 63+1=64)
   IniFileName0 = 'osynca.ini';
   SyncFileName0 = 'sync.ini';
 
@@ -43,7 +43,7 @@ Var
   OutED: boolean;
 
 function AddDirBackSlash( const Dir: TFileName ): TFileName;
-// Add slash to directory name if need
+// add slash to the directory name if need
 begin
   Result := Dir;
   if Result[ Length(Result) ] <> '\' then
@@ -51,7 +51,7 @@ begin
 end; {AddDirBackSlash}
 
 function QFN( const fn: TFileName ): TFileName;
-// Quote file name if need
+// quote file name if need
 begin
   Result := fn;
   if ( Pos( ' ', Result ) <> 0 ) or ( Pos( '&', Result ) <> 0 ) then
@@ -59,7 +59,7 @@ begin
 end; {QFN}
 
 function StrAnsiToOem( const aStr: String ): String;
-// Ansi to Oem string conversion
+// ANSI to Oem string conversion
 Var
   Len: integer;
 begin
@@ -77,13 +77,13 @@ begin
 end; {ToConsole}
 
 procedure TimeToConsole;
-// Output elapsed time to console
+// output the elapsed time to console
 begin
   ToConsole( Format( '%0.2f sec elapsed', [(Now-Time0)*SecsInDay] ) );
 end; {TimeToConsole}
 
 procedure ToLog( const Msg: string );
-// Output to log and to console
+// output to log and to console
 begin
   ToConsole( Msg ); 
   WriteLn( flog, Msg ); 
@@ -98,7 +98,7 @@ begin
 end; {ToCreate}
 
 procedure ToUpdate( const fnamex: TFileName );
-// fnamex is the filename, possibly, without a disk letter
+// fnamex is the filename (possibly, without a disk letter)
 begin
   WriteLn( fbackup, QFN(fnamex) );  
   WriteLn( fupdate, QFN(fnamex) );  
@@ -107,7 +107,7 @@ begin
 end; {ToUpdate}
 
 procedure ToRemove( const fnamex: TFileName );
-// fnamex is the filename, possibly, without a disk letter
+// fnamex is the filename (possibly, without a disk letter)
 begin
   WriteLn( fremove, QFN(fnamex) );  
   ToLog( '- ' + QFN(fnamex) ); 
@@ -154,7 +154,7 @@ Var
   EmptySubdir: boolean;
 begin
 
-// Parse DirMask to DirPath and FileMask
+// parse DirMask to DirPath and FileMask
   DirPath := DirMask;
   FileMask := '*.*';
   for i := Length(DirMask) downto 1 do
@@ -167,7 +167,7 @@ begin
     end;
   DirPath := AddDirBackSlash( DirPath );
 
-// Seach for files
+// seaching for files
   EmptyDir := True;
   SearchResult := FindFirst( DirPath + FileMask, faAnyFile, SRec );
   while SearchResult=0 do
@@ -183,9 +183,9 @@ begin
       SearchResult := FindNext( SRec )
     end;
 
-// Search for subdirectories
+// searching for subdirectories
   SearchResult := FindFirst( DirPath + '*.*', faAnyFile, SRec );
-// In this case hidden directories are skipped! Why?
+//  In the followng case hidden directories are skipped! Why?
 //  SearchResult := FindFirst( DirPath + '*.*', faDirectory, SRec );
   while SearchResult=0 do
     with SRec do
@@ -204,7 +204,7 @@ begin
 end; {ScanDirToComputerList}
 
 procedure ReplaceStr( Var s: string; const s1, s2: string );
-// Replace s1 by s2 in s
+// replace s1 by s2 in s
 Var
   i: integer;
 begin
@@ -221,12 +221,12 @@ Var
   SecName: string;
 begin
 
-// Does ini file exist?
+// does ini file exist?
   if not FileExists(FullIniFileName) then
     raise Exception.Create( 'Configuration file ' + QFN(FullIniFileName) + ' cannot be found' );
   ToConsole( 'Configuration file: ' + QFN(FullIniFileName) );
 
-// Prepare ini file
+// prepare ini file
   IniFile := TIniFile.Create(FullIniFileName);
 
   with IniFile do
@@ -249,12 +249,12 @@ Var
   SecName: string;
 begin
 
-// Does ini file exist?
+// does ini file exist?
   if not FileExists(FullSyncFileName) then
     raise Exception.Create( 'Sync file ' + QFN(FullSyncFileName) + ' cannot be found' );
   ToConsole( 'Sync file: ' + QFN(FullSyncFileName) );
 
-// Prepare ini file
+// prepare ini file
   SyncFile := TIniFile.Create(FullSyncFileName);
 
   with SyncFile do
@@ -265,7 +265,7 @@ begin
     Computer2 := ReadString( SecName, 'COMPUTER2', '' );
     Volume := ReadString( SecName, 'Volume', '' );
 
-// Check parameters
+// check parameters
     if (Computer1='') or (Computer2='') or (SyncDir='') then
       raise Exception.Create( 'No mandatory parameters in INI file' );
 
@@ -312,19 +312,19 @@ begin
 
   ComputerList := TStringList.Create;
 
-// ... and its counters
+// initionalize counters
   qCreate := 0;
   qUpdate := 0;
   qRemove := 0;
 
-// Prepare ini file
+// prepare ini file
   SyncFile := TIniFile.Create(FullSyncFileName);
 
   with SyncFile do
   begin
     OutED := (EDListName<>'');
 
-// prepare empty file for list of empty directories
+// prepare an empty file for the list of empty directories
     if OutED then
     begin
       Assign( femptydirs, EDListName );
@@ -332,7 +332,7 @@ begin
       CloseFile( femptydirs );
     end;
 
-// read list of directories
+// read the list of directories
     SecName := 'Directories';
     for i := 0 to MaxDirsQ do
     begin
@@ -374,7 +374,7 @@ begin
 end; {WriteComputerList}
 
 procedure ReadRemoteList;
-// Read remote ComputerList from file RemoteListName
+// read remote ComputerList from file RemoteListName
 Var
   s: string;
   i: integer;
@@ -402,17 +402,17 @@ begin
     i := Pos( '"', s ); // find the 2nd "
     if i<>0 then
     begin
-//    Extract filename
+//    extract filename
       fname := Copy( s, 1, i-1 );
       Delete( s, 1, i+1 );
       New( pDT );
-//    Extract date
+//    extract date
       try
          pDT^ := StrToDateTime( s );
       except
         raise Exception.Create( 'Bad format of remote list (2)' );
       end;
-//    Add record to the list
+//    add record to the list
       with RemoteComputerList do
         AddObject( fname, TObject(pDT) );
     end
@@ -424,7 +424,7 @@ begin
 end; {ReadRemoteList}
 
 function DateTimeDiff( const DT1, DT2: TDateTime ): longint;
-// difference of TDateTime in seconds
+// the difference of TDateTimes in seconds
 begin
 
   Result := Round( DT1*SecsInDay ) - Round( DT2*SecsInDay );
@@ -434,9 +434,9 @@ end; {DateTimeDiff}
 procedure WriteInfMsg( Cnt: integer; Act: string );
 begin
   if Cnt>1 then
-    WriteLn( finfo, Cnt:0, ' files have been ', Act )
+    WriteLn( finfo, Cnt:0, ' files were ', Act )
   else if Cnt=1 then
-    WriteLn( finfo, Cnt:0, ' file has been ', Act );
+    WriteLn( finfo, Cnt:0, ' file was ', Act );
 end; {CntMsg}
 
 procedure CompareLists;
@@ -446,7 +446,7 @@ Var
   pDT1, pDT2: PDateTime;
 begin
 
-// Open filelists
+// open filelists
   Assign( fupdate, UpdateArcListName );
   Rewrite( fupdate );
   Assign( fremove, RemoveArcListName );
@@ -454,18 +454,18 @@ begin
   Assign( fbackup, BackupArcListName );
   Rewrite( fbackup );
 
-// Compare filelists
+// compare the file lists
   i := 0;
   j := 0;
   while (i<ComputerList.Count) and (j<RemoteComputerList.Count) do
   begin
     c := AnsiCompareStr( ComputerList[i], RemoteComputerList[j] ); // Ansi is important!
-    if c<0 then // if the file in 1st list is unique
+    if c<0 then // if the file in the 1st list is unique
     begin
       ToCreate( ComputerList[i] );
       Inc( i );
     end
-    else if c>0 then // if the file in 2nd list is unique
+    else if c>0 then // if the file in the 2nd list is unique
     begin
       ToRemove( RemoteComputerList[j] );
       Inc( j );
@@ -481,24 +481,24 @@ begin
     end;
   end;
 
-// Push the rest of 1st list
+// push the rest of the 1st list
   with ComputerList do
     if i<Count then
       for k := i to Count-1 do
         ToCreate( ComputerList[k] );
 
-// ... or push the rest of 2nd list
+// ... and push the rest of the 2nd list
   with RemoteComputerList do
     if j<Count then
       for k := j to Count-1 do
         ToRemove( RemoteComputerList[k] );
 
-// Close filelists
+// close the filelists
   CloseFile( fupdate );
   CloseFile( fremove );
   CloseFile( fbackup );
 
-// Delete empty files, if any
+// delete empty files, if any
   if (qCreate=0) and (qUpdate=0) then
     DeleteFile( PChar(UpdateArcListName) );
   if qRemove=0 then
@@ -506,7 +506,7 @@ begin
   if qUpdate=0 then
     DeleteFile( PChar(BackupArcListName) );
 
-// Create info file
+// create info file
   if qCreate+qRemove+qUpdate>0 then
   begin
     Assign( finfo, InfoName );
@@ -529,7 +529,7 @@ begin
 end; {TerminateProgram}
 
 procedure ParseCmdLine;
-// Parse command line
+// parse the command line
 Var
   param: string;
   IniFileName: TFileName;
@@ -561,7 +561,7 @@ begin
   if FilOnly and InitOnly then
     raise Exception.Create( 'Keys /f and /i cannot be used together' );
 
-// Set configuration file name
+// set the configuration file name
   if IniFileName = '' then
     IniFileName := IniFileName0;
   if IniFileName = ExtractFileName(IniFileName) then
@@ -574,7 +574,7 @@ begin
 end; {ParseCmdLine}
 
 procedure CreateBatFiles;
-// creating bat files
+// create bat files
 
   procedure CreateBatFile( finname, foutname: TFileName );
   Var
@@ -618,7 +618,7 @@ begin
 
   ToConsole( Ver );
 
-// Start log
+// start the log
   Assign( flog, LogFileName );
   if FileExists( LogFileName ) then
     Append( flog )
@@ -626,21 +626,22 @@ begin
     Rewrite( flog );
   WriteLn( flog, '=== ', DateTimeToStr( Now ), ' Osynca ',  Ver, ' ===' );
 
-// Set date format
+// set date format
   ShortDateFormat := 'yyyy-mm-dd hh:nn:ss';
   DateSeparator := '-';
 
   try
 
-// Parse command line
+// parse the command line
     ParseCmdLine;
 
-// Read general parameters
+// read general parameters
     ReadIniFile;
 
-// Read syncronization parameters
+// read syncronization parameters
     FirstReadSyncFile;
 
+// if we only need to initialize files
     if InitOnly then
     begin
       CreateBatFiles;
@@ -650,16 +651,16 @@ begin
       Exit;
     end;
 
-// Make local list of files (and list of empty directories, if need)
+// make the local list of files (and the list of empty directories, if need)
     MakeComputerList;
 
-// Sort local list of files
+// sort the local list of files
     ComputerList.Sort;
 
 // ... and write it
     WriteComputerList;
 
-// If we only need *.fil file
+// If we only need to create *.fil file
     if FilOnly then
     begin
       ToLog( 'File ' + QFN(ListName) + ' was created or updated' );
@@ -670,13 +671,13 @@ begin
 
 // ... otherwise we need to compare files
 
-// Read remote file list
+// read the remote file list
     ReadRemoteList;
 
-// Compare lists
+// compare the lists
     CompareLists;
 
-// Close log
+// close the log
     CloseFile( flog );
 
   except
@@ -684,7 +685,7 @@ begin
       TerminateProgram( E.Message );
   end;
 
-// Output statistics
+// uutput the statistics
 
   ToConsole( Format( 'File(s) found: %d', [ComputerList.Count] ) );
   ToConsole( Format( 'File(s) to create/update/remove found: %d/%d/%d', [qCreate, qUpdate, qRemove] ) );
