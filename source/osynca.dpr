@@ -7,7 +7,7 @@ Uses
   SysUtils, Windows, FileCtrl, IniFiles, Classes, DateUtils;
 
 Const
-  Ver = 'v.0.998';
+  Ver = 'v.0.999';
   LogFileName = 'osynca.log';
   SecsInDay = 24*60*60; // number of seconds in day for TDateTime conversion
   ProgramMark = ' Osynca: ';
@@ -459,7 +459,7 @@ begin
   j := 0;
   while (i<ComputerList.Count) and (j<RemoteComputerList.Count) do
   begin
-    c := AnsiCompareStr( ComputerList[i], RemoteComputerList[j] ); // Ansi is important!
+    c := AnsiCompareStr( AnsiUppercase(ComputerList[i]), AnsiUppercase(RemoteComputerList[j]) ); // Ansi is important!
     if c<0 then // if the file in the 1st list is unique
     begin
       ToCreate( ComputerList[i] );
